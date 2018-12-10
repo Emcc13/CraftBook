@@ -146,8 +146,9 @@ public class Pipes extends AbstractCraftBookMechanic {
         return null;
     }
 
-    private static boolean isValidDiodeBlock(Block block) {
-        if (block.getType() != Material.PISTON_STICKY_BASE)
+    private static boolean isValidDiodeBlock(Block block, Block origin) {
+        if (block.getType() != Material.PISTON_STICKY_BASE ||
+                block.getRelative(((PistonBaseMaterial) block.getState().getData()).getFacing()) != origin)
             return false;
         BlockState state = block.getState();
         BlockFace facing = BlockFace.SELF;
@@ -304,7 +305,7 @@ public class Pipes extends AbstractCraftBookMechanic {
                             }
                         }
                         newItems.addAll(its);
-                    } else if (isValidDiodeBlock(fac)) {
+                    } else if (isValidDiodeBlock(fac, bl)) {
                         newItems.addAll(event.getItems());
                         try {
                             searchNearbyPipes(fac, visitedPipes, newItems, depth + 1);
