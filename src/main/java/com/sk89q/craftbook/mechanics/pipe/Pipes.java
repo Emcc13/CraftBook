@@ -91,7 +91,7 @@ public class Pipes extends AbstractCraftBookMechanic {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onSignChange(SignChangeEvent event) {
+    public void onSignChange2(SignChangeEvent event) {
         if(!EventUtil.passesFilter(event)) return;
 
         if(!event.getLine(1).equalsIgnoreCase("[diode]")) return;
@@ -99,17 +99,18 @@ public class Pipes extends AbstractCraftBookMechanic {
         LocalPlayer player = CraftBookPlugin.inst().wrapPlayer(event.getPlayer());
 
         if(!player.hasPermission("craftbook.circuits.diode")) {
-            if(CraftbookPlugin.inst().getConfiguration().showPermissionMessages)
+            if(CraftBookPlugin.inst().getConfiguration().showPermissionMessages)
                 player.printError("mech.create-permission");
-            SignUtil.cancleSign(event);
+            SignUtil.cancelSign(event);
             return;
         }
+        Block pistonBlock;
         if(!((isPiston(pistonBlock = SignUtil.getBackBlock(event.getBlock())))
                 || (event.getBlock().getType() == Material.SIGN_POST
                 && (isPiston(pistonBlock = event.getBlock().getRelative(BlockFace.UP))
                 || isPiston(pistonBlock = event.getBlock().getRelative(BlockFace.DOWN)))))) {
             player.printError("circuits.diode.diode-not-found");
-            SignUtil.cancleSign(event);
+            SignUtil.cancelSign(event);
             return;
         }
 
@@ -167,6 +168,7 @@ public class Pipes extends AbstractCraftBookMechanic {
             if(sign != null && sign.getLine(1).equalsIgnoreCase("[Diode]"))
                 return true;
         }
+        return false;
     }
 
     private void searchNearbyPipes(Block block, Set<Vector> visitedPipes, List<ItemStack> items, int depth) {
