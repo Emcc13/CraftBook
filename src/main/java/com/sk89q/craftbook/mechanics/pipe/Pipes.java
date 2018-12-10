@@ -90,6 +90,33 @@ public class Pipes extends AbstractCraftBookMechanic {
         player.print("circuits.pipes.create");
     }
 
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onSignChange(SignChangeEvent event) {
+        if(!EventUtil.passesFilter(event)) return;
+
+        if(!event.getLine(1).equalsIgnoreCase("[diode]")) return;
+
+        LocalPlayer player = CraftBookPlugin.inst().wrapPlayer(event.getPlayer());
+
+        if(!player.hasPermission("craftbook.circuits.diode")) {
+            if(CraftbookPlugin.inst().getConfiguration().showPermissionMessages)
+                player.printError("mech.create-permission");
+            SignUtil.cancleSign(event);
+            return;
+        }
+        if(!((isPiston(pistonBlock = SignUtil.getBackBlock(event.getBlock())))
+                || (event.getBlock().getType() == Material.SIGN_POST
+                && (isPiston(pistonBlock = event.getBlock().getRelative(BlockFace.UP))
+                || isPiston(pistonBlock = event.getBlock().getRelative(BlockFace.DOWN)))))) {
+            player.printError("circuits.diode.diode-not-found");
+            SignUtil.cancleSign(event);
+            return;
+        }
+
+        event.setLine(1, "[Diode]");
+        player.print("circuits.diode.create");
+    }
+
     private static boolean isPiston(Block block) {
         return block.getType() == Material.PISTON_BASE || block.getType() == Material.PISTON_STICKY_BASE;
     }
@@ -116,6 +143,30 @@ public class Pipes extends AbstractCraftBookMechanic {
         }
 
         return null;
+    }
+
+    private static boolean isValidDiodeBlock(Block block) {
+        if (block.getType() != Material.PISTON_STICKY_BASE)
+            return false;
+        BlockState state = block.getState();
+        BlockFace facing = BlockFace.SELF;
+        if(state.getData() instanceof Directional)
+            facing = ((Directional) state.getData()).getFacing();
+
+        for(BlockFace face : LocationUtil.getDirectFaces()) {
+
+            if(face == facing || !SignUtil.isSign(block.getRelative(face)))
+                continue;
+            if(block.getRelative(face).getType() != Material.SIGN_POST && (face == BlockFace.UP || face == BlockFace.DOWN))
+                continue;
+            else if (block.getRelative(face).getType() == Material.SIGN_POST && face != BlockFace.UP && face != BlockFace.DOWN)
+                continue;
+            if(block.getRelative(face).getType() != Material.SIGN_POST && !SignUtil.getBackBlock(block.getRelative(face)).getLocation().equals(block.getLocation()))
+                continue;
+            ChangedSign sign = BukkitUtil.toChangedSign(block.getRelative(face));
+            if(sign != null && sign.getLine(1).equalsIgnoreCase("[Diode]"))
+                return true;
+        }
     }
 
     private void searchNearbyPipes(Block block, Set<Vector> visitedPipes, List<ItemStack> items, int depth) {
@@ -251,6 +302,17 @@ public class Pipes extends AbstractCraftBookMechanic {
                             }
                         }
                         newItems.addAll(its);
+                    } else if (isValidDiodeBlock(fac)) {
+                        newItems.addAll(event.getItems());
+                        try {
+                            searchNearbyPipes(fac, visitedPipes, newItems, depth + 1);
+                        } catch (StackOverflowError e) {
+                            if (warnWhenMassive) {
+                                CraftBookPlugin.logger().warning("Pipes encountered a StackOverflowError at position: " + block.getLocation().toString() +
+                                        ". "
+                                        + "This occured at a depth of: " + depth);
+                            }
+                        }
                     } else {
                         newItems.addAll(event.getItems());
                     }
