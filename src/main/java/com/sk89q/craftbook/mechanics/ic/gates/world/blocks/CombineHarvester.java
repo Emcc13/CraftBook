@@ -83,20 +83,21 @@ public class CombineHarvester extends AbstractSelfTriggeredIC {
             case POTATOES:
             case BEETROOTS:
             case NETHER_WART_BLOCK:
-            case COCOA:
+//            case COCOA:
                 Ageable ageable = (Ageable) block.getBlockData();
                 return ageable.getAge() == ageable.getMaximumAge();
             case CACTUS:
                 return below == Material.CACTUS && above != Material.CACTUS;
             case SUGAR_CANE:
                 return below == Material.SUGAR_CANE && above != Material.SUGAR_CANE;
-            case VINE:
-                return above == Material.VINE && below != Material.VINE;
+//            case VINE:
+//                return above == Material.VINE && below != Material.VINE;
             case MELON:
             case PUMPKIN:
                 return true;
             default:
-                return Tag.LOGS.isTagged(block.getType());
+                return false;
+//                return Tag.LOGS.isTagged(block.getType());
         }
     }
 
