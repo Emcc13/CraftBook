@@ -113,7 +113,7 @@ public class CombineHarvester extends AbstractSelfTriggeredIC {
             case PUMPKIN:
                 return true;
             default:
-                return Tag.LOGS.isTagged(block.getType());
+                return Tag.LOGS.isTagged(blockMaterial);
         }
     }
 
@@ -155,35 +155,15 @@ public class CombineHarvester extends AbstractSelfTriggeredIC {
                 throw new ICVerificationException("Invalid SearchArea on 3rd line!");
         }
 
-        private static Material getMaterial(String line, boolean wild) {
+        private static Material getMaterial(String line) {
             if (line == null || line.trim().isEmpty()) {
                 return null;
             }
-
-            BLOCK_CONTEXT.setPreferringWildcard(wild);
-
-            BaseBlock blockState = null;
-            try {
-                blockState = WorldEdit.getInstance().getBlockFactory().parseFromInput(line, BLOCK_CONTEXT);
-            } catch (InputParseException e) {
-            }
-
             Material material = null;
-            if (blockState == null) {
-                String[] dataSplit = RegexUtil.COLON_PATTERN.split(line.replace("\\:", ":"), 2);
-                material = Material.getMaterial(dataSplit[0], true);
-                if (material != null) {
-                    int data = 0;
-                    if (dataSplit.length > 1) {
-                        data = Integer.parseInt(dataSplit[1]);
-                        if (data < 0 || data > 15) {
-                            data = 0;
-                        }
-                    }
-                }
-                if (material == null) {
-                    CraftBookPlugin.logger().warning("Invalid block format: " + line);
-                }
+            String[] dataSplit = RegexUtil.COLON_PATTERN.split(line.replace("\\:", ":"), 2);
+            material = Material.getMaterial(dataSplit[0]);
+            if (material == null) {
+                CraftBookPlugin.logger().warning("Invalid block format: " + line);
             }
             return material;
         }
@@ -194,7 +174,7 @@ public class CombineHarvester extends AbstractSelfTriggeredIC {
 
             blockBlacklist = new HashSet<Material>();
             for (String possibleMaterial : config.getStringList(path+"blacklist",Lists.newArrayList())){
-                Material mat = Factory.getMaterial(possibleMaterial, false);
+                Material mat = Factory.getMaterial(possibleMaterial);
                 if (mat != null){
                     blockBlacklist.add(mat);
                 }
